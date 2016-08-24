@@ -1,0 +1,95 @@
+#!/usr/bin/python3
+
+import os
+import sys
+from subprocess import call
+import re
+import datetime
+import time
+
+css = '''
+
+<style>
+blockquote {
+	padding: 0;
+	border: 0;
+	display: inline-block;
+	white-space: pre;
+	float: right;
+	line-height: 0.55;
+}
+blockquote + * {
+	clear: both;
+}
+blockquote p {
+	margin: 0;
+	padding: 0;
+	line-height: 1.2;
+}
+
+hr {
+	margin-top: 0;
+	padding-top: 0;
+	border: 0;
+	opacity: 0;
+}
+</style>
+'''
+
+def to_pdf(args):
+	name = args[0]
+	# split string at .
+	dotindex = name.rfind('.')
+	
+	ext = ""
+	if dotindex >= 0:
+		ext = name[dotindex+1:]
+		name = name[:dotindex]
+
+	f = open(args[0], 'r')
+	
+
+	if len(args) > 1:
+		g = ' -c ' + args[1]
+	else:
+		g = ''
+	
+	contents = f.read()
+
+	variables = list(set(re.findall("\$[A-Z]+", contents)))
+	replacements = []	
+
+	today = datetime.date.today()
+	
+	filename = today.strftime('%m_%d_%Y')
+
+	while len(variables) > 0:
+		var = variables.pop()
+		if var == "$DATE":
+			replacements.append(["$DATE", str(today.month)+'/'+str(today.day)+'/'+str(today.year)])
+		else:
+			s = input("Enter "+var[1:]+": ")
+			if var == "$COMPANY":
+				filename = s + "__" + filename
+			elif var == "$POSITION":
+				filename += "__" + s
+			replacements.append([var, s])
+
+	for replacement in replacements:
+		contents = re.sub("\\"+replacement[0], replacement[1], contents)
+
+	filename = filename.replace(' ', '-')
+
+	h = open(filename+'.md', 'w+')
+	
+	h.write(contents + css)
+	
+	s = h.read()
+
+	os.system('pandoc -f markdown_strict -t html' + g + ' -o ' + filename + '.html ' + filename + '.md && ' +
+	          'wkhtmltopdf -T 18 -B 18 -L 18 -R 18 -s letter ' + filename + '.html ' + filename + '.pdf')
+
+if len(sys.argv) > 1:
+	to_pdf(sys.argv[1:])
+else:
+	print("Missing argument. Please specify input filename.")

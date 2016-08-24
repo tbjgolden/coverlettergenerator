@@ -1,0 +1,43 @@
+#!/usr/bin/python3
+
+import os
+import sys
+import re
+import datetime
+
+def to_text(args):
+	name = args[0]
+	# split string at .
+	dotindex = name.rfind('.')
+	
+	ext = ""
+	if dotindex >= 0:
+		ext = name[dotindex+1:]
+		name = name[:dotindex]
+
+	f = open(args[0], 'r')
+	
+	contents = f.read()
+
+	variables = list(set(re.findall("\$[A-Z]+", contents)))
+	replacements = []	
+
+	while len(variables) > 0:
+		var = variables.pop()
+		if var == "$DATE":
+			today = datetime.date.today()
+			replacements.append(["$DATE", str(today.month)+'/'+str(today.day)+'/'+str(today.year)])
+		else:
+			replacements.append([var, input("Enter "+var[1:]+": ")])
+
+	for replacement in replacements:
+		contents = re.sub("\\"+replacement[0], replacement[1], contents)
+
+	print("====== Letter ========\n\n" + contents)
+
+	# os.system("pandoc -f markdown -t latex -o coverletter.pdf --css style.css coverletter.md")
+
+if len(sys.argv) > 1:
+	to_text(sys.argv[1:])
+else:
+	print("Missing argument. Please specify input filename.")
