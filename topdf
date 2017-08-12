@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/local/bin/python3
 
 import os
 import sys
@@ -10,6 +10,11 @@ import time
 css = '''
 
 <style>
+* {
+	font-size: 11pt;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
 blockquote {
 	padding: 0;
 	border: 0;
@@ -87,7 +92,7 @@ def to_pdf(args):
 	s = h.read()
 
 	os.system('pandoc -f markdown_strict -t html' + g + ' -o ' + filename + '.html ' + filename + '.md && ' +
-	          'wkhtmltopdf -T 18 -B 18 -L 18 -R 18 -s letter ' + filename + '.html ' + filename + '.pdf')
+	          'wkhtmltopdf -T 18 -B 18 -L 18 -R 18 --dpi 380 -s letter ' + filename + '.html ' + filename + '.pdf')
 
 if len(sys.argv) > 1:
 	to_pdf(sys.argv[1:])
